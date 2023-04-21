@@ -1,0 +1,55 @@
+inputs:
+  targets:
+    description: 'depviz target (format: \"org1/repo1 org1/repo2 org2 repo1\")' 
+    required: true
+  branch: 
+    description: 'the branch where to push the generated files' 
+    default: 'depviz-generate'
+  gen-json: 
+    description: 'generate json output'
+    default: 'false'
+  gen-png: 
+    description: 'generate png output'
+    default: 'false'
+  gen-csv:
+    description: 'generate csv output'
+    default: 'false'
+
+
+runs:
+  using: 'composite'
+  steps:
+  - uses: actions/checkout@v3
+
+  - run: mkdir db
+    shell: bash
+
+  - uses: actions/setup-go@v4
+
+  - run: mkdir depviz-outputs
+    shell: bash
+  - run: go install moul.io/depviz/v3/cmd/depviz@latest
+    shell: bash
+  - run: depviz fetch --github-token ${GITHUB_TOKEN} ${{ inputs.targets }} 
+    shell: bash
+  
+  # generate
+  - run: depviz gen json ${{ inputs.targets }} >> depviz-outputs/depviz.json
+    shell: bash
+    if: ${{ inputs.gen-json == 'true' }}
+  - run: depviz gen csv ${{ inputs.targets }} >> depviz-outputs/depviz.csv
+    shell: bash
+    if: ${{ inputs.gen-csv == 'true' }}
+  - run: depviz gen graphviz ${{ inputs.targets }} >> depviz-outputs/depviz.png
+    shell: bash
+    if: ${{ inputs.gen-png == 'true' }}
+  
+  - uses: stefanzweifel/git-auto-commit-action@v4
+    env:          
+      GITHUB_TOKEN: $GITHUB_TOKEN
+    with:
+      file_pattern: 'depviz-outputs/*'
+      commit_message: 'build: generate'
+      branch: ${{ inputs.branch }}
+      push_options: '--force'
+      create_branch: true
