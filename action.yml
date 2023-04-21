@@ -34,13 +34,13 @@ runs:
     shell: bash
   
   # generate
-  - run: depviz gen json ${{ inputs.targets }} >> depviz-outputs/depviz.json
+  - run: depviz gen json ${{ inputs.targets }} > depviz-outputs/depviz.json
     shell: bash
     if: ${{ inputs.gen-json == 'true' }}
-  - run: depviz gen csv ${{ inputs.targets }} >> depviz-outputs/depviz.csv
+  - run: depviz gen csv ${{ inputs.targets }} > depviz-outputs/depviz.csv
     shell: bash
     if: ${{ inputs.gen-csv == 'true' }}
-  - run: depviz gen graphviz ${{ inputs.targets }} >> depviz-outputs/depviz.png
+  - run: depviz gen graphviz ${{ inputs.targets }} > depviz-outputs/depviz.png
     shell: bash
     if: ${{ inputs.gen-png == 'true' }}
   
