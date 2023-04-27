@@ -1,7 +1,7 @@
 inputs:
   targets:
     description: 'depviz target (format: \"org1/repo1 org1/repo2 org2 repo1\")' 
-    required: true
+    default: $GITHUB_REPOSITORY
   branch: 
     description: 'the branch where to push the generated files' 
     default: 'depviz-generate'
@@ -14,16 +14,13 @@ inputs:
   gen-csv:
     description: 'generate csv output'
     default: 'false'
-
+  filters:
+    description: 'depviz filters use for the generation'
+    required: false
 
 runs:
   using: 'composite'
   steps:
-  - uses: actions/checkout@v3
-
-  - run: mkdir db
-    shell: bash
-
   - uses: actions/setup-go@v4
 
   - run: mkdir depviz-outputs
