@@ -32,12 +32,7 @@ runs:
   steps:
   - uses: actions/setup-go@v4
 
-  - run: |
-      mkdir -p 
-      $(dirname ${{ inputs.json-output }})
-      $(dirname ${{ inputs.png-output }})
-      $(dirname ${{ inputs.svg-output }})
-      $(dirname ${{ inputs.csv-output }})
+  - run: mkdir -p $(dirname ${{ inputs.outputs-dirname }}/${{ inputs.json-output }})
     shell: bash
   - run: go install moul.io/depviz/v3/cmd/depviz@${{ inputs.depviz-version }}
     shell: bash
@@ -45,18 +40,18 @@ runs:
     shell: bash
   
   # generate
-  - run: depviz gen json ${{ inputs.targets }} > depviz-outputs/depviz.json
+  - run: depviz gen json ${{ inputs.targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.json-output }}
     shell: bash
-    if: ${{ inputs.gen-json == 'true' }}
-  - run: depviz gen graphviz ${{ inputs.targets }} > depviz-outputs/depviz.png
+    if: ${{ inputs.json-output != '' }}
+  - run: depviz gen graphviz ${{ inputs.targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.png-output }}
     shell: bash
-    if: ${{ inputs.gen-png == 'true' }}
-  - run: depviz gen graphviz ${{ inputs.targets }} > depviz-outputs/depviz.svg
+    if: ${{ inputs.png-output != '' }}
+  - run: depviz gen graphviz ${{ inputs.targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.svg-output }}
     shell: bash
-    if: ${{ inputs.gen-svg == 'true' }}
-  - run: depviz gen svg ${{ inputs.targets }} > depviz-outputs/depviz.csv
+    if: ${{ inputs.svg-output != '' }}
+  - run: depviz gen svg ${{ inputs.targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.csv-output }}
     shell: bash
-    if: ${{ inputs.gen-csv == 'true' }}
+    if: ${{ inputs.csv-output != '' }}
   
   - uses: stefanzweifel/git-auto-commit-action@v4
     env:          
