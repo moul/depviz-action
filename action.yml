@@ -1,6 +1,9 @@
 inputs:
-  targets:
-    description: 'depviz target (format: \"org1/repo1 org1/repo2 org2 repo1\")' 
+  fetch-targets:
+    description: 'depviz target to fetch (format: \"org1/repo1 org1/repo2 org2 repo1\")'
+    default: '' 
+  generation-targets:
+    description: 'depviz target to generate outputs (format: \"org1/repo1 org1/repo2 org2 repo1\")' 
     default: $GITHUB_REPOSITORY
   branch: 
     description: 'the branch where to push the generated files.' 
@@ -32,24 +35,29 @@ runs:
   steps:
   - uses: actions/setup-go@v4
 
-  - run: mkdir -p $(dirname ${{ inputs.outputs-dirname }}/${{ inputs.json-output }})
-    shell: bash
+  # fetch
   - run: go install moul.io/depviz/v3/cmd/depviz@${{ inputs.depviz-version }}
     shell: bash
-  - run: depviz fetch --github-token ${GITHUB_TOKEN} ${{ inputs.targets }} 
+    if: ${{ inputs.fetch-targets != '' }}
+  - run: depviz fetch --github-token ${GITHUB_TOKEN} ${{ inputs.fetch-targets }} 
     shell: bash
-  
+    if: ${{ inputs.fetch-targets != '' }}
+ 
+
   # generate
-  - run: depviz gen json ${{ inputs.targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.json-output }}
+  - run: mkdir -p $(dirname ${{ inputs.outputs-dirname }}/${{ inputs.json-output }})
+    shell: bash
+
+  - run: depviz gen json ${{ inputs.generation-targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.json-output }}
     shell: bash
     if: ${{ inputs.json-output != '' }}
-  - run: depviz gen graphviz ${{ inputs.targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.png-output }}
+  - run: depviz gen graphviz ${{ inputs.generation-targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.png-output }}
     shell: bash
     if: ${{ inputs.png-output != '' }}
-  - run: depviz gen graphviz ${{ inputs.targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.svg-output }}
+  - run: depviz gen graphviz ${{ inputs.generation-targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.svg-output }}
     shell: bash
     if: ${{ inputs.svg-output != '' }}
-  - run: depviz gen svg ${{ inputs.targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.csv-output }}
+  - run: depviz gen svg ${{ inputs.generation-targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.csv-output }}
     shell: bash
     if: ${{ inputs.csv-output != '' }}
   
@@ -57,8 +65,7 @@ runs:
     env:          
       GITHUB_TOKEN: $GITHUB_TOKEN
     with:
-      ##file_pattern: "${{ inputs.json-output }} ${{ inputs.png-output }} ${{ inputs.svg-output }} ${{ inputs.csv-output }}"
-      file_pattern: "depviz-outputs"
+      file_pattern: ${{ inputs.outputs-dirname }}
       commit_message: 'build: generate'
       branch: ${{ inputs.branch }}
       push_options: '--force'
