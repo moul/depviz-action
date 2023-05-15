@@ -1,13 +1,7 @@
 inputs:
-  fetch-targets:
+  targets:
     description: 'depviz target to fetch (format: \"org1/repo1 org1/repo2 org2 repo1\")'
-    default: '' 
-  generation-targets:
-    description: 'depviz target to generate outputs (format: \"org1/repo1 org1/repo2 org2 repo1\")' 
     default: $GITHUB_REPOSITORY
-  branch: 
-    description: 'the branch where to push the generated files.' 
-    default: 'depviz-generate'
   json-output: 
     description: 'i.e., docs/depviz.json; no generation if empty.'
     default: ''
@@ -26,9 +20,6 @@ inputs:
   depviz-version:
     description: 'depviz version used to fetch and generate outputs.'
     default: 'latest'
-  outputs-dirname:
-    description: 'name of the directory containing action outputs'
-    default: 'depviz-outputs'
 
 runs:
   using: 'composite'
@@ -38,35 +29,32 @@ runs:
   # fetch
   - run: go install moul.io/depviz/v3/cmd/depviz@${{ inputs.depviz-version }}
     shell: bash
-    if: ${{ inputs.fetch-targets != '' }}
-  - run: depviz fetch --github-token ${GITHUB_TOKEN} ${{ inputs.fetch-targets }} 
+    if: ${{ inputs.targets != '' }}
+  - run: depviz fetch --github-token ${GITHUB_TOKEN} ${{ inputs.targets }} 
     shell: bash
-    if: ${{ inputs.fetch-targets != '' }}
+    if: ${{ inputs.targets != '' }}
  
-
   # generate
-  - run: mkdir -p $(dirname ${{ inputs.outputs-dirname }}/${{ inputs.json-output }})
-    shell: bash
-
-  - run: depviz gen json ${{ inputs.generation-targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.json-output }}
+  - run: |
+      mkdir -p $(dirname ${{ inputs.json-output }})
+      depviz gen json ${{ inputs.targets }} > ${{ inputs.json-output }}
     shell: bash
     if: ${{ inputs.json-output != '' }}
-  - run: depviz gen graphviz ${{ inputs.generation-targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.png-output }}
+  
+  - run: |
+      mkdir -p $(dirname ${{ inputs.png-output }})
+      depviz gen graphviz ${{ inputs.targets }} > ${{ inputs.png-output }}
     shell: bash
     if: ${{ inputs.png-output != '' }}
-  - run: depviz gen graphviz ${{ inputs.generation-targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.svg-output }}
+ 
+  - run: |
+      mkdir -p $(dirname ${{ inputs.svg-output }})
+      depviz gen svg ${{ inputs.targets }} > ${{ inputs.svg-output }}
     shell: bash
     if: ${{ inputs.svg-output != '' }}
-  - run: depviz gen svg ${{ inputs.generation-targets }} > ${{ inputs.outputs-dirname }}/${{ inputs.csv-output }}
+  - run: |
+      mkdir -p $(dirname ${{ inputs.csv-output }})
+      depviz gen csv ${{ inputs.targets }} > ${{ inputs.csv-output }}
     shell: bash
     if: ${{ inputs.csv-output != '' }}
   
-  - uses: stefanzweifel/git-auto-commit-action@v4
-    env:          
-      GITHUB_TOKEN: $GITHUB_TOKEN
-    with:
-      file_pattern: ${{ inputs.outputs-dirname }}
-      commit_message: 'build: generate'
-      branch: ${{ inputs.branch }}
-      push_options: '--force'
-      create_branch: true
