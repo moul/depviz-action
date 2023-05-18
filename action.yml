@@ -27,12 +27,11 @@ runs:
   - uses: actions/setup-go@v4
 
   # fetch
-  - run: go install moul.io/depviz/v3/cmd/depviz@${{ inputs.depviz-version }}
+  - run: |
+      go install moul.io/depviz/v3/cmd/depviz@${{ inputs.depviz-version }}
+      depviz fetch --github-token ${GITHUB_TOKEN} ${{ inputs.targets }}
     shell: bash
-    if: ${{ inputs.targets != '' }}
-  - run: depviz fetch --github-token ${GITHUB_TOKEN} ${{ inputs.targets }} 
-    shell: bash
-    if: ${{ inputs.targets != '' }}
+    if: ${{ inputs.json-output == '' && inputs.png-output == '' && inputs.svg-output == '' && inputs.csv-output == '' }}
  
   # generate
   - run: |
