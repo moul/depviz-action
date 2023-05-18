@@ -17,6 +17,9 @@ inputs:
   filters:
     description: 'depviz filters use for the generation.'
     required: false
+  with-fetch:
+    description: "don\'t fetch targets if empty."
+    default: 'true'
   depviz-version:
     description: 'depviz version used to fetch and generate outputs.'
     default: 'latest'
@@ -31,8 +34,7 @@ runs:
       go install moul.io/depviz/v3/cmd/depviz@${{ inputs.depviz-version }}
       depviz fetch --github-token ${GITHUB_TOKEN} ${{ inputs.targets }}
     shell: bash
-    if: ${{ inputs.json-output == '' && inputs.png-output == '' && inputs.svg-output == '' && inputs.csv-output == '' }}
- 
+    if: ${{ inputs.with-fetch != '' }} 
   # generate
   - run: |
       mkdir -p $(dirname ${{ inputs.json-output }})
