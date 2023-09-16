@@ -1,0 +1,61 @@
+inputs:
+  targets:
+    description: 'depviz target to fetch (format: \"org1/repo1 org1/repo2 org2 repo1\")'
+    default: $GITHUB_REPOSITORY
+  json-output: 
+    description: 'i.e., docs/depviz.json; no generation if empty.'
+    default: ''
+  png-output: 
+    description: 'i.e., docs/depviz.png; no generation if empty.'
+    default: ''
+  svg-output:
+    description: 'i.e., docs/depviz.svg; no generation if empty.'
+    default: '' 
+  csv-output:
+    description: 'i.e., docs/depviz.csv; no generation if empty.'
+    default: ''
+  filters:
+    description: 'depviz filters use for the generation.'
+    required: false
+  with-fetch:
+    description: "do not fetch targets if empty."
+    default: 'true'
+  depviz-version:
+    description: 'depviz version used to fetch and generate outputs.'
+    default: 'latest'
+
+runs:
+  using: 'composite'
+  steps:
+  - uses: actions/setup-go@v4
+
+  # fetch
+  - run: |
+      go install moul.io/depviz/v3/cmd/depviz@${{ inputs.depviz-version }}
+      depviz fetch --github-token ${GITHUB_TOKEN} ${{ inputs.targets }}
+    shell: bash
+    if: ${{ inputs.with-fetch != '' }} 
+  # generate
+  - run: |
+      mkdir -p $(dirname ${{ inputs.json-output }})
+      depviz gen json ${{ inputs.targets }} > ${{ inputs.json-output }}
+    shell: bash
+    if: ${{ inputs.json-output != '' }}
+  
+  - run: |
+      mkdir -p $(dirname ${{ inputs.png-output }})
+      depviz gen graphviz ${{ inputs.targets }} > ${{ inputs.png-output }}
+    shell: bash
+    if: ${{ inputs.png-output != '' }}
+ 
+  - run: |
+      mkdir -p $(dirname ${{ inputs.svg-output }})
+      depviz gen svg ${{ inputs.targets }} > ${{ inputs.svg-output }}
+    shell: bash
+    if: ${{ inputs.svg-output != '' }}
+  - run: |
+      mkdir -p $(dirname ${{ inputs.csv-output }})
+      depviz gen csv ${{ inputs.targets }} > ${{ inputs.csv-output }}
+    shell: bash
+    if: ${{ inputs.csv-output != '' }}
+  
