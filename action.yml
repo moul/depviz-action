@@ -44,13 +44,13 @@ runs:
   
   - run: |
       mkdir -p $(dirname ${{ inputs.png-output }})
-      depviz gen graphviz ${{ inputs.targets }} > ${{ inputs.png-output }}
+      depviz gen graphviz -type=png ${{ inputs.targets }} > ${{ inputs.png-output }}
     shell: bash
     if: ${{ inputs.png-output != '' }}
  
   - run: |
       mkdir -p $(dirname ${{ inputs.svg-output }})
-      depviz gen svg ${{ inputs.targets }} > ${{ inputs.svg-output }}
+      depviz gen graphviz -type=svg ${{ inputs.targets }} > ${{ inputs.svg-output }}
     shell: bash
     if: ${{ inputs.svg-output != '' }}
   - run: |
