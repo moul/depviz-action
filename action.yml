@@ -18,7 +18,7 @@ inputs:
     description: 'depviz filters use for the generation.'
     required: false
   with-fetch:
-    description: "don\'t fetch targets if empty."
+    description: "do not fetch targets if empty."
     default: 'true'
   depviz-version:
     description: 'depviz version used to fetch and generate outputs.'
